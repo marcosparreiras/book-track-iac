@@ -95,29 +95,51 @@ resource "aws_ecs_task_definition" "app_task" {
   }
 
   container_definitions = <<DEFINITION
-  [
-    {
-      "name": "booktrack-container",
-      "image": "marcosparreiras/booktrack:latest",
-      "essential": true,
-      "portMappings": [
-        {
-          "containerPort": 80,
-          "hostPort": 80,
-          "protocol": "tcp"
-        }
-      ],
-      "logConfiguration": {
-        "logDriver": "awslogs",
-        "options": {
-          "awslogs-group": "${aws_cloudwatch_log_group.app_log_group.name}",
-          "awslogs-region": "us-east-1",
-          "awslogs-stream-prefix": "ecs"
-        }
-      }  
-    }
-  ]
-  DEFINITION 
+[
+  {
+    "name": "booktrack-container",
+    "image": "marcosparreiras/booktrack:latest",
+    "essential": true,
+    "portMappings": [
+      {
+        "containerPort": 80,
+        "hostPort": 80,
+        "protocol": "tcp"
+      }
+    ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "${aws_cloudwatch_log_group.app_log_group.name}",
+        "awslogs-region": "us-east-1",
+        "awslogs-stream-prefix": "ecs"
+      }
+    },
+    "environment": [
+      {
+        "name": "JWT_SECRET",
+        "value": "supersecrert"
+      },
+      {
+        "name": "DATABASE_URL",
+        "value": "postgres://${aws_db_instance.postgres.username}:${aws_db_instance.postgres.password}@${aws_db_instance.postgres.endpoint}/${aws_db_instance.postgres.db_name}?ssl=false"
+      },
+      {
+        "name": "BUCKET_NAME",
+        "value": "${aws_s3_bucket.my_bucket.bucket}"
+      },
+      {
+        "name": "BUCKET_REGION",
+        "value": "us-east-1"
+      },
+      {
+        "name": "LOGGER_MODE",
+        "value": "production"
+      }
+    ]
+  }
+]
+DEFINITION
 }
 
 resource "aws_ecs_service" "app_service" {

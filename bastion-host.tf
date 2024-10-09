@@ -29,6 +29,11 @@ resource "aws_instance" "bastion_host" {
 
   security_groups = [aws_security_group.bastion_sg.id]
 
+  user_data = <<-EOF
+              #!/bin/bash
+              sudo dnf install -y postgresql15
+              EOF
+
   tags = {
     Name = "BastionHost"
   }
